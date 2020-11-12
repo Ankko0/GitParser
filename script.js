@@ -7,7 +7,7 @@ var columnDefs = [
             {field: "node_id", columnGroupShow: "open"},
             {field: "name"},
             {field: "full_name"},
-            {field: "html_url"},
+            {field: "html_url", cellRenderer: MakeClickable},
             {field: "private"}]
     },
     {
@@ -16,19 +16,19 @@ var columnDefs = [
             {field: "login"},
             {field: "ownerId"},
             {field: "ownerNode_id", columnGroupShow: "open"},
-            {field: "avatar_url"},
+            {field: "avatar_url", cellRenderer: MakeClickable},
             {field: "gravatar_id", columnGroupShow: "open"},
             {field: "url", columnGroupShow: "open"},
-            {field: "ownerHtml_url"},
-            {field: "followers_url", columnGroupShow: "open"},
-            {field: "following_url", columnGroupShow: "open"},
-            {field: "gists_url", columnGroupShow: "open"},
-            {field: "starred_url", columnGroupShow: "open"},
-            {field: "subscriptions_url", columnGroupShow: "open"},
-            {field: "organizations_url", columnGroupShow: "open"},
-            {field: "repos_url", columnGroupShow: "open"},
-            {field: "events_url", columnGroupShow: "open"},
-            {field: "received_events_url", columnGroupShow: "open"},
+            {field: "ownerHtml_url", cellRenderer: MakeClickable},
+            {field: "followers_url", columnGroupShow: "open", cellRenderer: MakeClickable},
+            {field: "following_url", columnGroupShow: "open", cellRenderer: MakeClickable},
+            {field: "gists_url", columnGroupShow: "open", cellRenderer: MakeClickable},
+            {field: "starred_url", columnGroupShow: "open", cellRenderer: MakeClickable},
+            {field: "subscriptions_url", columnGroupShow: "open", cellRenderer: MakeClickable},
+            {field: "organizations_url", columnGroupShow: "open", cellRenderer: MakeClickable},
+            {field: "repos_url", columnGroupShow: "open", cellRenderer: MakeClickable},
+            {field: "events_url", columnGroupShow: "open", cellRenderer: MakeClickable},
+            {field: "received_events_url", columnGroupShow: "open", cellRenderer: MakeClickable},
             {field: "type"},
             {field: "site_admin"}
         ]
@@ -45,42 +45,40 @@ var gridOptions = {
     }
 };
 
-/* Создание ag-grid таблицы на странице. Данные парсяться с https://api.github.com/repositories */
+/* Создание кликабельной ссылки. params - значение из выбранной ячейки к которой привязана функция.*/
+function MakeClickable(params) {
+    return '<a href=\"'+params.value+'\" target=\"_blank\" rel=\"noopener\">'+ params.value+'</a>';
+}
+
+/* Создание ag-grid таблицы на странице. Данные парсятся с https://api.github.com/repositories */
 document.addEventListener("DOMContentLoaded", function () {
-    let rowsCount = parseInt(window.location.search.match(/\d+/)[0]);
+    var rowsCount = parseInt(window.location.search.match(/\d+/)[0]);
     var gridDiv = document.querySelector("#myGrid");
     new agGrid.Grid(gridDiv, gridOptions);
-    try{
     agGrid
         .simpleHttpRequest({
             url:
                 "https://api.github.com/repositories",
         })
         .then(function (data) {
-            var result = []
-            for (let i = 0; i < rowsCount; i++) {
-                let item = data[i];
-                /*
-                    Подсчет звезд и форков. Работает только платно (слишком много запросов).
-
-                                let starsCount = 0;
-                                let forksCount = 0;
-                                $.ajaxSetup({
-                                    async: false
-                                });
-
-                                $.getJSON(item.url, function (data){
-                                    debugger
-                                    console.log(data);
-                                    starsCount = data.stargazers_count;
-                                    forksCount = data.forks_count;
-
-                                });
-                                $.ajaxSetup({
-                                    async: true
-                                });
-
-                 */
+            var result = [];
+            for (var i = 0; i < rowsCount; i++) {
+                var item = data[i];
+                // Подсчет звезд и форков. Работает только платно (Ограничение api.github на кол-во запросов).
+                // var starsCount = 0;
+                // var forksCount = 0;
+                // $.ajaxSetup({
+                //     async: false
+                // });
+                // $.getJSON(item.url, function (data) {
+                //     debugger
+                //     console.log(data);
+                //     starsCount = data.stargazers_count;
+                //     forksCount = data.forks_count;
+                // });
+                // $.ajaxSetup({
+                //     async: true
+                // });
                 var record = {
                     "id": item.id,
                     "node_id": item.node_id,
@@ -113,9 +111,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 result.push(record);
             }
             gridOptions.api.setRowData(result);
-        })}
-        catch (ex)
-        {
-            alert(ex);
-        }
+        })
+
 })
